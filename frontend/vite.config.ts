@@ -1,16 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// Dev proxy: /api -> local FastAPI, so the UI and API feel same-origin in dev.
+// Pure static app. Data is served as /dashboard.json from the public/ folder
+// (dev and prod alike) — no backend, so no dev proxy needed.
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: 5173,
-    proxy: {
-      "/api": {
-        target: process.env.VITE_API_TARGET || "http://localhost:8000",
-        changeOrigin: true,
-      },
-    },
-  },
+  server: { port: 5173 },
 });

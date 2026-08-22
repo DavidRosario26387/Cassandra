@@ -1,70 +1,55 @@
 name: Weekly refresh
 
-# Recomputes prices -> valuation -> recommendations on the deployed backend by
-# hitting its POST /api/refresh endpoint. The backend does the work and writes
-# to its own persistent disk; this job just triggers it and verifies it ran.
-#
-# Requires two repository secrets (Settings -> Secrets and variables -> Actions):
-#   API_BASE_URL   e.g. https://compounder-api.onrender.com   (no trailing slash)
-#   REFRESH_TOKEN  the same value as the backend's REFRESH_TOKEN env var
+# Recomputes the screen (scores + fresh prices + valuation) and commits the new
+# dashboard.json into the frontend. Render's static site auto-deploys on push.
+# No backend involved — GitHub's runner does the heavy lifting (plenty of RAM
+# and reliable network), then hands the app a static file.
 
 on:
   schedule:
     - cron: "0 9 * * 1" # Mondays 09:00 UTC
-  workflow_dispatch: {} # adds a manual "Run workflow" button
+  workflow_dispatch: {} # manual "Run workflow" button
 
-# Never let two refreshes overlap.
 concurrency:
   group: weekly-refresh
   cancel-in-progress: false
+
+permissions:
+  contents: write # needs to commit the regenerated JSON
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      API: ${{ secrets.API_BASE_URL }}
-      TOKEN: ${{ secrets.REFRESH_TOKEN }}
     steps:
-      - name: Check secrets are set
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Recompute the screen
+        working-directory: backend
+        run: python pipeline.py
+
+      - name: Publish JSON into the frontend
         run: |
-          if [ -z "$API" ] || [ -z "$TOKEN" ]; then
-            echo "::error::Set the API_BASE_URL and REFRESH_TOKEN repository secrets."
-            exit 1
+          cp backend/data/dashboard.json frontend/public/dashboard.json
+          cp backend/data/status.json   frontend/public/status.json
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/dashboard.json frontend/public/status.json
+          if git diff --cached --quiet; then
+            echo "No data changes — nothing to commit."
+          else
+            git commit -m "chore: weekly data refresh [skip ci]"
+            git push
+            echo "Pushed refreshed data."
           fi
-
-      - name: Record current data timestamp
-        id: before
-        run: |
-          before=$(curl -sf --max-time 60 "$API/api/status" | jq -r '.updated // "none"')
-          echo "before=$before" >> "$GITHUB_OUTPUT"
-          echo "Current data timestamp: $before"
-
-      - name: Trigger refresh
-        run: |
-          code=$(curl -s -o /tmp/resp.json -w '%{http_code}' \
-            --retry 5 --retry-all-errors --retry-delay 15 --max-time 120 \
-            -X POST "$API/api/refresh" \
-            -H "x-refresh-token: $TOKEN")
-          echo "HTTP $code"; cat /tmp/resp.json 2>/dev/null || true; echo
-          if [ "$code" != "200" ]; then
-            echo "::error::/api/refresh returned HTTP $code"
-            exit 1
-          fi
-
-      - name: Wait for completion (and keep the service awake)
-        run: |
-          before='${{ steps.before.outputs.before }}'
-          echo "Waiting for data timestamp to advance from: $before"
-          for i in $(seq 1 40); do   # ~13 min max (40 x 20s)
-            sleep 20
-            now=$(curl -sf --max-time 60 "$API/api/status" | jq -r '.updated // "none"')
-            count=$(curl -sf --max-time 60 "$API/api/status" | jq -r '.count // 0')
-            echo "  [$i] updated=$now count=$count"
-            if [ "$now" != "none" ] && [ "$now" != "$before" ]; then
-              echo "::notice::Refresh completed. New timestamp: $now ($count companies)"
-              exit 0
-            fi
-          done
-          echo "::error::Timed out waiting for the refresh to finish."
-          exit 1

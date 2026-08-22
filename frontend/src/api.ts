@@ -1,16 +1,20 @@
 import type { CompaniesResponse } from "./types";
 
-// In dev, Vite proxies /api -> localhost:8000 (see vite.config.ts).
-// In prod, set VITE_API_BASE to the backend URL at build time.
+// No backend: the data is a static JSON file served from the site root
+// (frontend/public/dashboard.json -> /dashboard.json in the build). GitHub
+// Actions regenerates and commits it weekly; Render redeploys on push.
+//
+// VITE_API_BASE stays supported so a real API can be dropped in later (AI,
+// server-side scoring) without touching call sites — empty means same-origin.
 const BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/+$/, "");
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`);
+  const res = await fetch(`${BASE}${path}`, { cache: "no-cache" });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json() as Promise<T>;
 }
 
 export const api = {
-  companies: () => get<CompaniesResponse>("/api/companies"),
-  status: () => get<{ updated: string | null; count: number }>("/api/status"),
+  companies: () => get<CompaniesResponse>("/dashboard.json"),
+  status: () => get<{ updated: string | null; count: number }>("/status.json"),
 };

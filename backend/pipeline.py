@@ -65,7 +65,7 @@ def fetch_prices(tickers):
         for attempt in range(3):
             try:
                 df = yf.download(chunk, period="5d", interval="1d",
-                                 progress=False, auto_adjust=True, threads=True)
+                                 progress=False, auto_adjust=True, threads=False)
                 if df is None or df.empty:
                     raise RuntimeError("empty")
                 if isinstance(df.columns, pd.MultiIndex):
