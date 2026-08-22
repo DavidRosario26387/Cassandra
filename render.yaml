@@ -1,0 +1,60 @@
+# Render Blueprint - deploys both services at once.
+# In Render: New -> Blueprint -> point at this repo. It reads this file.
+services:
+  # ---------- Backend: API + weekly scheduler ----------
+  - type: web
+    name: compounder-api
+    runtime: python
+    rootDir: backend
+    plan: starter            # 'free' works but sleeps; 'starter' keeps the weekly job reliable
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: REFRESH_TOKEN
+        generateValue: true          # secret to protect POST /api/refresh
+      - key: ALLOWED_ORIGINS
+        sync: false                  # set to your frontend URL after first deploy
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: compounder-data          # persists computed results across restarts
+      mountPath: /var/data
+      sizeGB: 1
+
+  # ---------- Frontend: React (Vite) static site ----------
+  - type: web
+    name: compounder-ui
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Baked into the build. Set to your backend URL after the API deploys.
+      - key: VITE_API_BASE
+        value: https://compounder-api.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html   # SPA: all routes -> index.html
+
+# ---------- Optional: a dedicated weekly Cron Job ----------
+# The backend already schedules itself. If you prefer Render's cron primitive
+# (more reliable on the free plan, which sleeps), uncomment this and it will
+# ping the refresh endpoint weekly instead.
+# jobs:
+#   - type: cron
+#     name: compounder-weekly
+#     runtime: python
+#     rootDir: backend
+#     schedule: "0 9 * * 1"          # Mondays 09:00 UTC
+#     buildCommand: pip install requests
+#     startCommand: >
+#       python -c "import os,requests;
+#       requests.post(os.environ['API_URL']+'/api/refresh',
+#       headers={'x-refresh-token':os.environ['REFRESH_TOKEN']}, timeout=30)"
+#     envVars:
+#       - key: API_URL
+#         value: https://compounder-api.onrender.com
+#       - key: REFRESH_TOKEN
+#         sync: false
