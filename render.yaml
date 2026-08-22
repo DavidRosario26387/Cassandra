@@ -6,7 +6,7 @@ services:
     name: compounder-api
     runtime: python
     rootDir: backend
-    plan: starter            # 'free' works but sleeps; 'starter' keeps the weekly job reliable
+    plan: free               # no credit card; sleeps when idle, recomputes on boot
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
@@ -15,12 +15,9 @@ services:
         generateValue: true          # secret to protect POST /api/refresh
       - key: ALLOWED_ORIGINS
         sync: false                  # set to your frontend URL after first deploy
-      - key: DATA_DIR
-        value: /var/data
-    disk:
-      name: compounder-data          # persists computed results across restarts
-      mountPath: /var/data
-      sizeGB: 1
+    # No persistent disk on free: DATA_DIR defaults to ./data (ephemeral). The
+    # app recomputes on boot if the dashboard is missing, so a cold start just
+    # rebuilds it. The GitHub Actions weekly job keeps the data fresh.
 
   # ---------- Frontend: React (Vite) static site ----------
   - type: web
