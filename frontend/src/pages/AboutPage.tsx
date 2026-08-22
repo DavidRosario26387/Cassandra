@@ -8,30 +8,30 @@ const PILLARS = [
 
 export default function AboutPage() {
   return (
-    <div className="flex-1 overflow-auto px-8 py-10">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="font-display text-[30px] font-medium tracking-tight">Method</h1>
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto max-w-2xl px-6 py-10">
+        <h1 className="display text-[24px] text-ink">Method</h1>
         <p className="mt-2 max-w-[64ch] text-[14px] leading-relaxed text-ink-2">
           Every score traces back to a reported SEC line item. Fundamentals come from EDGAR company
           facts; only share price comes from a market feed. Nothing is estimated by vibe.
         </p>
 
-        <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider text-muted">
+        <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wide text-muted">
           Five quality pillars
         </h2>
-        <div className="mt-3 flex flex-col divide-y divide-border rounded-xl border border-border bg-surface">
+        <div className="mt-3 flex flex-col divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface shadow-card">
           {PILLARS.map(([name, desc]) => (
             <div key={name} className="px-5 py-4">
-              <div className="font-medium">{name}</div>
+              <div className="font-semibold text-ink">{name}</div>
               <div className="mt-1 text-[13px] leading-relaxed text-ink-2">{desc}</div>
             </div>
           ))}
         </div>
 
-        <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wider text-muted">
+        <h2 className="mt-8 text-[11px] font-semibold uppercase tracking-wide text-muted">
           How the score is built
         </h2>
-        <ul className="mt-3 flex flex-col gap-2 text-[13.5px] leading-relaxed text-ink-2">
+        <ul className="mt-3 flex flex-col gap-2.5 text-[13.5px] leading-relaxed text-ink-2">
           <li>
             <b className="text-ink">Sector-relative.</b> Each metric is a percentile rank within the
             company's sector — a bank is judged against banks.

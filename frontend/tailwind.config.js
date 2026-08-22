@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-// Colors are driven by CSS variables (see src/index.css) so light/dark are one
-// source of truth. Tailwind classes like `bg-surface` resolve to the token.
+// Colors resolve to CSS variables (src/index.css) so light/dark share one
+// source of truth. `bg-surface`, `text-ink`, `text-buy`, etc. all map here.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   darkMode: "class",
@@ -24,17 +24,21 @@ export default {
         wait: "var(--wait)",
         pass: "var(--pass)",
         review: "var(--review)",
+        pos: "var(--pos)",
+        neg: "var(--neg)",
       },
       fontFamily: {
-        display: ['"Fraunces"', "Georgia", "serif"],
-        sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
-        mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
+        sans: ['"Inter"', "system-ui", "sans-serif"],
       },
       boxShadow: {
-        panel: "0 1px 2px rgba(17,24,32,.05), 0 8px 28px rgba(17,24,32,.08)",
-        drawer: "-12px 0 40px rgba(17,24,32,.16)",
+        card: "var(--shadow-card)",
+        pop: "var(--shadow-pop)",
       },
-      borderRadius: { xl: "10px" },
+      borderRadius: {
+        lg: "8px",
+        xl: "10px",
+        "2xl": "14px",
+      },
     },
   },
   plugins: [],

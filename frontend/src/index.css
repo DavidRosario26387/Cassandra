@@ -2,44 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---------- design tokens ---------- */
+/* ============================================================
+   Design tokens — one source of truth for light + dark.
+   Neutral surfaces, a single professional blue brand accent,
+   and semantic colors reserved for meaning (call, up/down).
+   ============================================================ */
 :root {
-  --bg: #f4f6f8;
+  --bg: #f6f7f9;
   --surface: #ffffff;
-  --surface-2: #edf0f3;
-  --surface-3: #e4e8ed;
-  --ink: #111820;
-  --ink-2: #48535f;
-  --muted: #828e9c;
-  --border: #dde2e8;
-  --border-2: #cbd2da;
-  --accent: #0c6b75;
-  --accent-ink: #0a555d;
-  --accent-soft: #0c6b7522;
-  --buy: #1e8e4e;
-  --watch: #b9821a;
-  --wait: #4c63b6;
-  --pass: #6b7686;
-  --review: #94a0ad;
+  --surface-2: #f1f3f6;
+  --surface-3: #e7eaef;
+  --ink: #0f1729;
+  --ink-2: #48566b;
+  --muted: #8a97a8;
+  --border: #e7eaee;
+  --border-2: #d5dbe3;
+
+  --accent: #2563eb;
+  --accent-ink: #1d4ed8;
+  --accent-soft: #2563eb14;
+
+  --buy: #059669;
+  --watch: #d97706;
+  --wait: #7c3aed;
+  --pass: #64748b;
+  --review: #94a3b8;
+
+  --pos: #059669;
+  --neg: #dc2626;
+
+  --shadow-card: 0 1px 2px rgba(15, 23, 41, 0.04), 0 1px 3px rgba(15, 23, 41, 0.06);
+  --shadow-pop: 0 4px 12px rgba(15, 23, 41, 0.08), 0 12px 32px rgba(15, 23, 41, 0.1);
 }
 .dark {
-  --bg: #0b0f13;
-  --surface: #141a20;
-  --surface-2: #1b222a;
-  --surface-3: #222b34;
-  --ink: #e8ecf1;
-  --ink-2: #a0abb8;
-  --muted: #6c7784;
-  --border: #252e37;
-  --border-2: #333e49;
-  --accent: #33a6b0;
-  --accent-ink: #5dbfc7;
-  --accent-soft: #33a6b026;
-  --buy: #3bb56e;
-  --watch: #d19a33;
-  --wait: #7488d6;
-  --pass: #7a8694;
-  --review: #5a6570;
+  --bg: #0a0e16;
+  --surface: #121826;
+  --surface-2: #19202f;
+  --surface-3: #232c3e;
+  --ink: #e7ecf3;
+  --ink-2: #9aa8ba;
+  --muted: #5f6d80;
+  --border: #212a3a;
+  --border-2: #313c4f;
+
+  --accent: #3b82f6;
+  --accent-ink: #60a5fa;
+  --accent-soft: #3b82f622;
+
+  --buy: #10b981;
+  --watch: #f59e0b;
+  --wait: #a78bfa;
+  --pass: #64748b;
+  --review: #64748b;
+
+  --pos: #10b981;
+  --neg: #f87171;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.4), 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -54,16 +74,26 @@ body,
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-}
-.tnum {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
 }
 
-/* thin, tasteful scrollbars */
+/* Tabular figures for every number in a data grid. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv01" 1, "cv02" 1;
+  letter-spacing: -0.01em;
+}
+/* Tight display type for headings — no serif, pure Inter. */
+.display {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Thin, unobtrusive scrollbars. */
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -71,7 +101,12 @@ body {
 *::-webkit-scrollbar-thumb {
   background: var(--border-2);
   border-radius: 6px;
-  border: 2px solid var(--surface);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background-clip: padding-box;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
@@ -80,6 +115,7 @@ body {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 @media (prefers-reduced-motion: reduce) {
   * {
