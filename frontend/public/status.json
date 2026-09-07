@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-31T17:01:06.702143+00:00",
+  "updated": "2026-09-07T15:00:26.262007+00:00",
   "count": 1675,
-  "priced": 1634,
+  "priced": 1633,
   "counts": {
     "PASS (quality)": 1482,
-    "BUY": 96,
-    "WATCH": 85,
+    "BUY": 99,
+    "WATCH": 82,
     "WAIT FOR PULLBACK": 6,
     "REVIEW (no price)": 6
   }
